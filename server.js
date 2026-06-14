@@ -1,0 +1,50 @@
+import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import userRoute from "./routes/user.route.js";
+import categoryRoute from "./routes/category.route.js";
+import adminRoute from "./routes/admin.route.js";
+import productRoute from "./routes/product.route.js";
+
+
+const app = express();
+
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:3000"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+app.use('/users', userRoute)
+app.use('/category', categoryRoute)
+app.use('/admin', adminRoute)
+app.use('/products', productRoute)
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found - ${req.originalUrl}`,
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("DB Connection Failed:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
