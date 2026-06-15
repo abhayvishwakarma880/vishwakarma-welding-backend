@@ -7,12 +7,13 @@ import userRoute from "./routes/user.route.js";
 import categoryRoute from "./routes/category.route.js";
 import adminRoute from "./routes/admin.route.js";
 import productRoute from "./routes/product.route.js";
+import galleryRoute from "./routes/gallery.route.js";
 
 
 const app = express();
 
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000", "https://admin-vishwakarma-welding.vercel.app"],
+  origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "https://admin-vishwakarma-welding.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
@@ -24,6 +25,7 @@ app.use('/users', userRoute)
 app.use('/category', categoryRoute)
 app.use('/admin', adminRoute)
 app.use('/products', productRoute)
+app.use('/gallery', galleryRoute)
 
 app.use((req, res) => {
   res.status(404).json({
