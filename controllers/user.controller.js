@@ -200,6 +200,59 @@ export const getUserById = async (req, res) => {
   }
 };
 
+// ── Admin: Update any user ───────────────────────────────────
+export const adminUpdateUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const { name, email, pincode, city, state, address, isActive } = req.body;
+
+    if (name     !== undefined) user.name    = name;
+    if (email    !== undefined) user.email   = email || undefined;
+    if (pincode  !== undefined) user.pincode = pincode;
+    if (city     !== undefined) user.city    = city;
+    if (state    !== undefined) user.state   = state;
+    if (address  !== undefined) user.address = address;
+    if (isActive !== undefined) user.isActive = isActive === "true" || isActive === true;
+
+    if (req.file) {
+      if (user.profilePhoto?.publicId) {
+        await cloudinary.uploader.destroy(user.profilePhoto.publicId);
+      }
+      const uploaded = await uploadToCloudinary(req.file.buffer, "vishwakarma/users");
+      user.profilePhoto = { url: uploaded.secure_url, publicId: uploaded.public_id };
+    }
+
+    await user.save();
+    const updated = await User.findById(user._id).select("-otp -expiresAt");
+    res.status(200).json({ success: true, message: "User updated successfully", data: updated });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ── Admin: Toggle user status ─────────────────────────────────
+export const adminToggleUserStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    user.isActive = !user.isActive;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `User ${user.isActive ? "activated" : "deactivated"} successfully`,
+      data: user,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const updateUser = async (req, res) => {
   try {
     const user = req.user;

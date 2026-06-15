@@ -8,6 +8,10 @@ import categoryRoute from "./routes/category.route.js";
 import adminRoute from "./routes/admin.route.js";
 import productRoute from "./routes/product.route.js";
 import galleryRoute from "./routes/gallery.route.js";
+import contactRoute from "./routes/contact.route.js";
+import sliderRoute from "./routes/slider.route.js";
+import blogRoute      from "./routes/blog.route.js";
+import wishlistRoute  from "./routes/wishlist.route.js";
 
 
 const app = express();
@@ -26,6 +30,10 @@ app.use('/category', categoryRoute)
 app.use('/admin', adminRoute)
 app.use('/products', productRoute)
 app.use('/gallery', galleryRoute)
+app.use('/contact', contactRoute)
+app.use('/slider', sliderRoute)
+app.use('/blog',      blogRoute)
+app.use('/wishlist',  wishlistRoute)
 
 app.use((req, res) => {
   res.status(404).json({
