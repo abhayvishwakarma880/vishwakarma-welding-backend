@@ -27,6 +27,12 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
 
+    slug: {
+      type: String,
+      unique: true,
+      index: true,
+    },
+
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",

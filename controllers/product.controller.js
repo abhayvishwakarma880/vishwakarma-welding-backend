@@ -1,6 +1,22 @@
 import Product from "../models/product.model.js";
 import cloudinary from "../config/cloudinary.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
+import slugify from "../utils/slugify.js";
+
+// ── Slug generator (unique) ───────────────────────────────────
+const generateUniqueSlug = async (name, excludeId = null) => {
+  let base = slugify(name);
+  let slug = base;
+  let count = 1;
+  while (true) {
+    const query = { slug };
+    if (excludeId) query._id = { $ne: excludeId };
+    const exists = await Product.findOne(query).lean();
+    if (!exists) break;
+    slug = `${base}-${count++}`;
+  }
+  return slug;
+};
 
 // ── Create Product ────────────────────────────────────────────
 export const createProduct = async (req, res) => {
@@ -27,8 +43,10 @@ export const createProduct = async (req, res) => {
       galleryImages = uploads.map((u) => ({ url: u.secure_url, publicId: u.public_id }));
     }
 
+    const slug = await generateUniqueSlug(name);
+
     const product = await Product.create({
-      name, category, price, discount, description, aboutThisProduct, mainImage, galleryImages,
+      name, slug, category, price, discount, description, aboutThisProduct, mainImage, galleryImages,
     });
 
     res.status(201).json({ success: true, data: product });
@@ -80,10 +98,15 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
-// ── Get Product By ID ─────────────────────────────────────────
+// ── Get Product By ID or Slug ─────────────────────────────────────────
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("category", "name");
+    const { id } = req.params;
+    const isObjectId = id.match(/^[0-9a-fA-F]{24}$/);
+
+    const product = isObjectId
+      ? await Product.findById(id).populate("category", "name").populate("relatedProducts", "name price discount finalPrice mainImage category slug")
+      : await Product.findOne({ slug: id }).populate("category", "name").populate("relatedProducts", "name price discount finalPrice mainImage category slug");
 
     if (!product) {
       return res.status(404).json({ success: false, message: "Product not found" });
@@ -107,7 +130,12 @@ export const updateProduct = async (req, res) => {
 
     const { name, category, price, discount, description, aboutThisProduct, isActive } = req.body;
 
-    if (name)                          product.name              = name;
+    if (name && name.trim() !== product.name) {
+      product.name = name.trim();
+      product.slug = await generateUniqueSlug(name, product._id);
+    } else if (!product.slug) {
+      product.slug = await generateUniqueSlug(product.name, product._id);
+    }
     if (category)                      product.category          = category;
     if (price !== undefined)           product.price             = price;
     if (discount !== undefined)        product.discount          = discount;
