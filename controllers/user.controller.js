@@ -83,9 +83,15 @@ export const sendOtp = async (req, res) => {
         data: newUser,
       })
     }
+    user.otp = otp;
+    user.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    await user.save();
     
-    await user.updateOne({otp:otp, expiresAt:new Date(Date.now() + 5 * 60 * 1000)})
-    return res.status(201).json({success: true,message: "OTP sent successfully",data: user,})
+    return res.status(201).json({
+      success: true,
+      message: "OTP sent successfully",
+      data: user,
+    });
 
 
   } catch (error) {

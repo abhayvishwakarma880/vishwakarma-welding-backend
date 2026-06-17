@@ -42,7 +42,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
 
     pincode: {
@@ -93,7 +92,6 @@ const userSchema = new mongoose.Schema(
 );
 
 // Compound Indexes
-userSchema.index({ email: 1, isActive: 1 });
 userSchema.index({ mobile: 1, isActive: 1 });
 userSchema.index({ city: 1, state: 1 });
 
