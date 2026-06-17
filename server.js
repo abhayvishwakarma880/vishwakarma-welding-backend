@@ -13,7 +13,7 @@ import sliderRoute from "./routes/slider.route.js";
 import blogRoute      from "./routes/blog.route.js";
 import wishlistRoute  from "./routes/wishlist.route.js";
 import recentSideWorkRoute from "./routes/recentSideWork.route.js";
-
+import orderRoute from "./routes/order.route.js";
 
 const app = express();
 
@@ -36,7 +36,7 @@ app.use('/slider', sliderRoute)
 app.use('/blog',      blogRoute)
 app.use('/wishlist',  wishlistRoute)
 app.use('/recent-side-works', recentSideWorkRoute)
-
+app.use('/orders', orderRoute)
 app.use((req, res) => {
   res.status(404).json({
     success: false,

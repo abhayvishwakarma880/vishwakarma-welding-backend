@@ -65,7 +65,16 @@ export const sendOtp = async (req, res) => {
       return res.status(400).json({ success: false, message: "mobile number is required" })
     }
 
-    const user = await User.findOne({ mobile, isActive: true })
+    // Find any user with this mobile number regardless of active status
+    const user = await User.findOne({ mobile })
+
+    // If user exists but is deactivated, block further actions
+    if (user && !user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "You are blocked, please contact to Ankit Vishwakarma",
+      })
+    }
 
     const otp = generateOTP()
 
@@ -73,7 +82,7 @@ export const sendOtp = async (req, res) => {
       const newUser = {
         mobile,
         otp,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
       }
 
       await User.create(newUser)
@@ -118,10 +127,12 @@ export const login = async (req, res) => {
     const user = await User.findOne({ mobile })
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Block deactivated users from logging in
+    if (user && !user.isActive) {
+      return res.status(403).json({ success: false, message: "You are blocked, please contact to Ankit Vishwakarma" });
     }
 
     if (user.otp !== otp) {
