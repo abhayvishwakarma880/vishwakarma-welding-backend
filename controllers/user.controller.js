@@ -59,23 +59,23 @@ export const createUser = async (req, res) => {
 
 export const sendOtp = async (req, res) => {
   try {
-    const {mobile} = req.body
+    const { mobile } = req.body
 
-    if(!mobile){
-      return res.status(400).json({success:false, message:"mobile number is required"})
+    if (!mobile) {
+      return res.status(400).json({ success: false, message: "mobile number is required" })
     }
-    
-    const user = await User.findOne({mobile, isActive:true})
+
+    const user = await User.findOne({ mobile, isActive: true })
 
     const otp = generateOTP()
 
-    if(!user){
+    if (!user) {
       const newUser = {
         mobile,
         otp,
-        expiresAt:new Date(Date.now() + 5 * 60 * 1000)
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000)
       }
-      
+
       await User.create(newUser)
       return res.status(201).json({
         success: true,
@@ -86,7 +86,7 @@ export const sendOtp = async (req, res) => {
     user.otp = otp;
     user.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     await user.save();
-    
+
     return res.status(201).json({
       success: true,
       message: "OTP sent successfully",
@@ -96,7 +96,7 @@ export const sendOtp = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -154,20 +154,20 @@ export const login = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const page     = parseInt(req.query.page)  || 1;
-    const limit    = parseInt(req.query.limit) || 10;
-    const skip     = (page - 1) * limit;
-    const search   = req.query.search?.trim();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search?.trim();
     const isActive = req.query.isActive;
 
     const query = {};
 
     if (search) {
       query.$or = [
-        { name:   { $regex: search, $options: "i" } },
+        { name: { $regex: search, $options: "i" } },
         { mobile: { $regex: search, $options: "i" } },
-        { email:  { $regex: search, $options: "i" } },
-        { city:   { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { city: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -214,12 +214,12 @@ export const adminUpdateUser = async (req, res) => {
 
     const { name, email, pincode, city, state, address, isActive } = req.body;
 
-    if (name     !== undefined) user.name    = name;
-    if (email    !== undefined) user.email   = email || undefined;
-    if (pincode  !== undefined) user.pincode = pincode;
-    if (city     !== undefined) user.city    = city;
-    if (state    !== undefined) user.state   = state;
-    if (address  !== undefined) user.address = address;
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email || undefined;
+    if (pincode !== undefined) user.pincode = pincode;
+    if (city !== undefined) user.city = city;
+    if (state !== undefined) user.state = state;
+    if (address !== undefined) user.address = address;
     if (isActive !== undefined) user.isActive = isActive === "true" || isActive === true;
 
     if (req.file) {
@@ -281,6 +281,11 @@ export const updateUser = async (req, res) => {
       };
     }
 
+    const existUser = await User.findOne({ email })
+    if (existUser && existUser._id !== user._id) {
+      return res.status(400).json({ success: false, message: "User with this email already exists" });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       user._id,
       { name, email, pincode, city, state, address, profilePhoto },
@@ -299,5 +304,23 @@ export const updateUser = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+export const getProfileById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Security check: only allow user to get their own profile
+    if (req.user._id.toString() !== id) {
+      return res.status(403).json({ success: false, message: "Unauthorized access" });
+    }
+    const user = await User.findById(id).select("-otp -expiresAt");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
