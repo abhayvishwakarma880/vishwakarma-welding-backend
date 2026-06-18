@@ -18,7 +18,7 @@ import orderRoute from "./routes/order.route.js";
 const app = express();
 
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "https://admin-vishwakarma-welding.vercel.app", "https://welding-boy-ankit.vercel.app"],
+  origin: ["https://www.vishwakarmawelding.in/","http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "https://admin-vishwakarma-welding.vercel.app", "https://welding-boy-ankit.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
