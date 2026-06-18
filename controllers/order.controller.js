@@ -12,6 +12,7 @@ export const createOrder = async (req, res) => {
       pincode,
       city,
       state,
+      mobile,
     } = req.body;
 
     const order = await Order.create({
@@ -24,6 +25,7 @@ export const createOrder = async (req, res) => {
       pincode,
       city,
       state,
+      mobile,
     });
     return res.status(201).json({ success: true, data: order });
   } catch (err) {

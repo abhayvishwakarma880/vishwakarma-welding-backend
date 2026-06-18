@@ -22,6 +22,11 @@ const orderSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    mobile: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     message: {
       type: String,
       required: false,
